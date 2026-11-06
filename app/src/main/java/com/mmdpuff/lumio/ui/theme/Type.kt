@@ -8,10 +8,14 @@ import com.mmdpuff.lumio.R
 
 val FontInter = FontFamily(
     Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
 )
 val FontRobotoMono = FontFamily(
     Font(R.font.robotomono_regular, FontWeight.Normal),
-)
+    Font(R.font.robotomono_medium, FontWeight.Medium),
+
+    )
 val Typography = Typography().run {
 
     copy(
