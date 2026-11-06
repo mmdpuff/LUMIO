@@ -1,34 +1,38 @@
 package com.mmdpuff.lumio.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import com.mmdpuff.lumio.R
 
-// Set of Material typography styles to start with
-val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    )
-    */
+val FontInter = FontFamily(
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
 )
+val FontRobotoMono = FontFamily(
+    Font(R.font.robotomono_regular, FontWeight.Normal),
+)
+val Typography = Typography().run {
+
+    copy(
+        displayLarge = displayLarge.copy(fontFamily = FontInter),
+        displayMedium = displayMedium.copy(fontFamily = FontInter),
+        displaySmall = displaySmall.copy(fontFamily = FontInter),
+
+        headlineLarge = headlineLarge.copy(fontFamily = FontInter),
+        headlineMedium = headlineMedium.copy(fontFamily = FontInter),
+        headlineSmall = headlineSmall.copy(fontFamily = FontInter),
+
+        titleLarge = titleLarge.copy(fontFamily = FontInter),
+        titleMedium = titleMedium.copy(fontFamily = FontInter),
+        titleSmall = titleSmall.copy(fontFamily = FontInter),
+
+        bodyLarge = bodyLarge.copy(fontFamily = FontInter),
+        bodyMedium = bodyMedium.copy(fontFamily = FontInter),
+        bodySmall = bodySmall.copy(fontFamily = FontInter),
+
+        labelLarge = labelLarge.copy(fontFamily = FontInter),
+        labelMedium = labelMedium.copy(fontFamily = FontInter),
+        labelSmall = labelSmall.copy(fontFamily = FontInter)
+    )
+}
