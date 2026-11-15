@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="assets/lumio-hero.gif" alt="LUMIO — animated neon Bluetooth and ESP32 lighting controller banner" width="100%" />
-
 <br />
 
 **A little light. A lot of atmosphere.**
