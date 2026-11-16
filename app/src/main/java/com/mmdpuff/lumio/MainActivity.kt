@@ -39,27 +39,39 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.mmdpuff.lumio.ui.theme.ColorBox
 import com.mmdpuff.lumio.ui.theme.FontRobotoMono
 import com.mmdpuff.lumio.ui.theme.LUMIOTheme
@@ -106,6 +118,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val navcontroller = rememberNavController()
+
             var message by remember {
                 mutableStateOf("SALAM")
             }
@@ -121,7 +135,62 @@ class MainActivity : ComponentActivity() {
                 }
 
             LUMIOTheme {
+                var selectedItem by remember { mutableIntStateOf(0) }
+
+                val items = listOf(
+                    "Home",
+                    "Settings",
+                )
+
+                val icons = listOf(
+                    Icons.Filled.Home,
+                    Icons.Default.Settings,
+                )
+
                 Scaffold(
+                    bottomBar = {
+                        NavigationBar(
+                            modifier = Modifier.drawBehind {
+                                drawLine(
+                                    color = Color(0xff252839),
+                                    start = Offset(0f, 0f),
+                                    end = Offset(size.width, 0f),
+                                    strokeWidth = 1.dp.toPx()
+                                )
+                            },
+                            containerColor = Color(0xff090B12)
+                        ) {
+                            items.forEachIndexed { index, item ->
+                                NavigationBarItem(
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        unselectedIconColor = Color(0xff9398AD),
+                                        unselectedTextColor = Color(0xff9398AD),
+                                        indicatorColor = Color(0xff1E192D)
+                                    ),
+                                    selected = selectedItem == index,
+                                    onClick = {
+                                        selectedItem = index
+                                        if (index == 0) navcontroller.navigate("LED") else navcontroller.navigate(
+                                            "OLED"
+                                        )
+
+
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = icons[index],
+                                            contentDescription = item
+                                        )
+                                    },
+                                    label = {
+                                        Text(item)
+                                    }
+                                )
+                            }
+                        }
+                    },
                     topBar = {
                         TopAppBar(
                             title = {
@@ -170,7 +239,7 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                             .padding(25.dp, 0.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceAround
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Box(
                             Modifier
@@ -259,260 +328,278 @@ class MainActivity : ComponentActivity() {
                             }
 
                         }
+
+
                         var color by remember {
                             mutableStateOf(Color(0xFF9B55F6))
                         }
                         val red = (color.red * 255).toInt()
                         val green = (color.green * 255).toInt()
                         val blue = (color.blue * 255).toInt()
-
                         val hex = "#%02X%02X%02X".format(red, green, blue)
+                        NavHost(navController = navcontroller, startDestination = "LED") {
+                            composable(route = "LED") {
+                                Column(
+                                    Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.SpaceAround,
+                                    horizontalAlignment = Alignment.CenterHorizontally
 
-                        Column {
-                            Text(
-                                "Make it your mood.",
-                                fontSize = 16.sp,
-                                color = Color(0xffF5F5FC),
-                                fontWeight = FontWeight.Medium
-                            )
+                                ) {
+                                    Column {
+                                        Text(
+                                            "Make it your mood.",
+                                            fontSize = 16.sp,
+                                            color = Color(0xffF5F5FC),
+                                            fontWeight = FontWeight.Medium
+                                        )
 
-                            ColorPicker(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp),
-                                initialColor = color,
-                                onColorChanged = {
-                                    color = it
-                                }
-                            )
+                                        ColorPicker(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(24.dp),
+                                            initialColor = color,
+                                            onColorChanged = {
+                                                color = it
+                                            }
+                                        )
 
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    Modifier
-                                        .size(15.dp)
-                                        .clip(shape = RoundedCornerShape(5.dp))
-                                        .background(color)
-                                )
-                                Spacer(Modifier.width(5.dp))
-
-
-
-                                Text(
-                                    "${hex}",
-                                    color = Color(0xffF5F5FC),
-                                    fontFamily = FontRobotoMono, fontWeight = FontWeight.Medium,
-                                    fontSize = 13.sp
-                                )
-                                Text(
-                                    text = " | RGB $red . $green . $blue",
-                                    color = Color(0xff9398AD),
-                                    fontFamily = FontRobotoMono,
-                                    fontWeight = FontWeight.Normal, fontSize = 12.sp
-                                )
-
-                            }
-                        }
-                        val colors = listOf(
-                            MyColor("Red", Color(0xfffa5758)),
-                            MyColor("Blue", Color(0xff5787fa)),
-                            MyColor("Green", Color(0xff57fa61)),
-                            MyColor("Purple", Color(0xffa657fa)),
-                            MyColor("Cyan", Color(0xff57fae2)),
-                            MyColor("Yellow", Color(0xffcbfa57)),
-                        )
-
-                        Column {
-                            Text(
-                                "Quick colors",
-                                fontSize = 11.sp,
-                                color = Color(0xff9398AD),
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(Modifier.height(10.dp))
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceAround
-                            ) {
-                                colors.forEach { item ->
-
-                                    Box(
-                                        modifier = Modifier
-                                            .width(51.67.dp)
-                                            .height(56.dp)
-                                    ) {
-                                        Column(
-                                            Modifier.fillMaxSize(),
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
                                         ) {
                                             Box(
                                                 Modifier
-                                                    .size(38.dp)
+                                                    .size(15.dp)
+                                                    .clip(shape = RoundedCornerShape(5.dp))
+                                                    .background(color)
+                                            )
+                                            Spacer(Modifier.width(5.dp))
+
+
+
+                                            Text(
+                                                "${hex}",
+                                                color = Color(0xffF5F5FC),
+                                                fontFamily = FontRobotoMono,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 13.sp
+                                            )
+                                            Text(
+                                                text = " | RGB $red . $green . $blue",
+                                                color = Color(0xff9398AD),
+                                                fontFamily = FontRobotoMono,
+                                                fontWeight = FontWeight.Normal, fontSize = 12.sp
+                                            )
+
+                                        }
+                                    }
+                                    val colors = listOf(
+                                        MyColor("Red", Color(0xfffa5758)),
+                                        MyColor("Blue", Color(0xff5787fa)),
+                                        MyColor("Green", Color(0xff57fa61)),
+                                        MyColor("Purple", Color(0xffa657fa)),
+                                        MyColor("Cyan", Color(0xff57fae2)),
+                                        MyColor("Yellow", Color(0xffcbfa57)),
+                                    )
+
+                                    Column {
+                                        Text(
+                                            "Quick colors",
+                                            fontSize = 11.sp,
+                                            color = Color(0xff9398AD),
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Spacer(Modifier.height(10.dp))
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceAround
+                                        ) {
+                                            colors.forEach { item ->
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(51.67.dp)
+                                                        .height(56.dp)
+                                                ) {
+                                                    Column(
+                                                        Modifier.fillMaxSize(),
+                                                        verticalArrangement = Arrangement.Center,
+                                                        horizontalAlignment = Alignment.CenterHorizontally
+                                                    ) {
+                                                        Box(
+                                                            Modifier
+                                                                .size(38.dp)
+                                                                .border(
+                                                                    1.dp,
+                                                                    Color(0xffFFFFFF).copy(alpha = .2f),
+                                                                    shape = CircleShape
+                                                                )
+                                                                .padding(5.dp)
+
+                                                        ) {
+                                                            Box(
+                                                                Modifier
+                                                                    .fillMaxSize()
+                                                                    .clip(shape = CircleShape)
+                                                                    .background(item.color)
+                                                            )
+                                                        }
+                                                        Text(
+                                                            item.name,
+                                                            fontSize = 9.sp,
+                                                            color = Color(0xff9398AD)
+                                                        )
+
+                                                    }
+                                                }
+
+                                            }
+                                        }
+
+
+                                    }
+
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(76.dp)
+                                            .clip(shape = RoundedCornerShape(20.dp))
+                                            .border(
+                                                width = 1.dp,
+                                                color = Color(0xffFFFFFF).copy(alpha = .07f),
+                                                shape = RoundedCornerShape(20.dp)
+                                            )
+                                            .background(ColorBox)
+                                    ) {
+                                        Row(
+                                            Modifier.fillMaxSize(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                        ) {
+
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Box(
+                                                    Modifier
+                                                        .size(38.dp)
+                                                        .clip(shape = RoundedCornerShape(12.dp))
+                                                        .padding(8.dp)
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.board),
+                                                        contentDescription = null,
+                                                        tint = Color(0xff9398AD),
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                }
+                                                Spacer(Modifier.width(10.dp))
+
+                                                Column(
+                                                    Modifier
+                                                        .width(166.dp),
+                                                    verticalArrangement = Arrangement.Center,
+                                                    horizontalAlignment = Alignment.Start
+                                                ) {
+                                                    Text(
+                                                        "Onboard LED",
+                                                        fontWeight = FontWeight.Medium,
+                                                        fontSize = 14.sp,
+                                                        color = Color(0xffF5F5FC)
+                                                    )
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(5.dp)
+                                                                .clip(shape = CircleShape)
+
+                                                                .background(color = MaterialTheme.colorScheme.primary)
+                                                        )
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Text(
+                                                            "ON",
+                                                            fontFamily = FontRobotoMono,
+                                                            fontSize = 10.sp,
+                                                            letterSpacing = 0.6.sp,
+                                                            color = MaterialTheme.colorScheme.primary
+                                                        )
+                                                        Spacer(Modifier.width(4.dp))
+
+                                                        Text(
+                                                            "· GPIO 2 . $message",
+                                                            fontFamily = FontRobotoMono,
+                                                            fontSize = 9.sp,
+                                                            letterSpacing = 0.6.sp,
+                                                            color = Color(0xff666E87)
+                                                        )
+                                                    }
+
+                                                }
+                                            }
+                                            var light by remember { mutableStateOf(0) }
+
+                                            Box(
+                                                Modifier
+                                                    .size(50.dp)
+
+                                                    .clip(shape = CircleShape)
+                                                    .background(Color(0xff171927))
                                                     .border(
-                                                        1.dp,
-                                                        Color(0xffFFFFFF).copy(alpha = .2f),
+                                                        width = 1.dp,
+                                                        color = Color(0xffAD82FF).copy(alpha = 0.1961f),
                                                         shape = CircleShape
                                                     )
-                                                    .padding(5.dp)
+                                                    .clickable(
+                                                        onClick = {
+                                                            if (light == 1) {
+                                                                sendToEsp("0")
+                                                                light = 0
+                                                            } else {
+
+                                                                sendToEsp("1")
+                                                                light = 1
+                                                            }
+
+
+                                                        },
+                                                        enabled = ready && !busy
+                                                    ), contentAlignment = Alignment.Center
 
                                             ) {
                                                 Box(
                                                     Modifier
-                                                        .fillMaxSize()
+                                                        .size(40.dp)
+
                                                         .clip(shape = CircleShape)
-                                                        .background(item.color)
-                                                )
-                                            }
-                                            Text(
-                                                item.name,
-                                                fontSize = 9.sp,
-                                                color = Color(0xff9398AD)
-                                            )
+                                                        .background(Color(0xffAD82FF).copy(alpha = 0.102f))
+                                                        .border(
+                                                            width = 1.dp,
+                                                            color = Color(0xffAD82FF).copy(alpha = 0.33f),
+                                                            shape = CircleShape
+                                                        )
+                                                        .padding(3.dp),
+                                                    contentAlignment = Alignment.Center
 
-                                        }
-                                    }
-
-                                }
-                            }
-
-
-                        }
-
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(76.dp)
-                                .clip(shape = RoundedCornerShape(20.dp))
-                                .border(
-                                    width = 1.dp,
-                                    color = Color(0xffFFFFFF).copy(alpha = .07f),
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .background(ColorBox)
-                        ) {
-                            Row(
-                                Modifier.fillMaxSize(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        Modifier
-                                            .size(38.dp)
-                                            .clip(shape = RoundedCornerShape(12.dp))
-                                            .padding(8.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.board),
-                                            contentDescription = null,
-                                            tint = Color(0xff9398AD),
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
-                                    Spacer(Modifier.width(10.dp))
-
-                                    Column(
-                                        Modifier
-                                            .width(166.dp),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        Text(
-                                            "Onboard LED",
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 14.sp,
-                                            color = Color(0xffF5F5FC)
-                                        )
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(5.dp)
-                                                    .clip(shape = CircleShape)
-
-                                                    .background(color = MaterialTheme.colorScheme.primary)
-                                            )
-                                            Spacer(Modifier.width(8.dp))
-                                            Text(
-                                                "ON",
-                                                fontFamily = FontRobotoMono,
-                                                fontSize = 10.sp,
-                                                letterSpacing = 0.6.sp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                            Spacer(Modifier.width(4.dp))
-
-                                            Text(
-                                                "· GPIO 2 . $message",
-                                                fontFamily = FontRobotoMono,
-                                                fontSize = 9.sp,
-                                                letterSpacing = 0.6.sp, color = Color(0xff666E87)
-                                            )
-                                        }
-
-                                    }
-                                }
-                                var light by remember { mutableStateOf(0) }
-
-                                Box(
-                                    Modifier
-                                        .size(50.dp)
-
-                                        .clip(shape = CircleShape)
-                                        .background(Color(0xff171927))
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color(0xffAD82FF).copy(alpha = 0.1961f),
-                                            shape = CircleShape
-                                        )
-                                        .clickable(
-                                            onClick = {
-                                                if (light == 1) {
-                                                    sendToEsp("0")
-                                                    light = 0
-                                                } else {
-
-                                                    sendToEsp("1")
-                                                    light = 1
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.power),
+                                                        contentDescription = null,
+                                                    )
                                                 }
 
+                                            }
 
-                                            },
-                                            enabled = ready && !busy
-                                        ), contentAlignment = Alignment.Center
-
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .size(40.dp)
-
-                                            .clip(shape = CircleShape)
-                                            .background(Color(0xffAD82FF).copy(alpha = 0.102f))
-                                            .border(
-                                                width = 1.dp,
-                                                color = Color(0xffAD82FF).copy(alpha = 0.33f),
-                                                shape = CircleShape
-                                            )
-                                            .padding(3.dp), contentAlignment = Alignment.Center
-
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.power),
-                                            contentDescription = null,
-                                        )
+                                        }
                                     }
-
                                 }
-
                             }
+                            composable(
+                                route = "OLED"
+                            ) {
+                                Text("Hello")
+                            }
+
                         }
-
-
                     }
                 }
             }
