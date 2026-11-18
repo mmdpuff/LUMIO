@@ -23,26 +23,47 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.maxLength
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FormatAlignCenter
+import androidx.compose.material.icons.filled.Monitor
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.VerticalAlignCenter
+import androidx.compose.material.icons.filled.WbIncandescent
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -50,9 +71,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -62,9 +86,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -118,6 +145,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val matrix = remember {
+                Array(64) {
+                    IntArray(128) { 0 }
+                }
+            }
+
+            // ساخت یک شکل آزمایشی
+            LaunchedEffect(Unit) {
+
+                // خط افقی
+                for (x in 0..50) {
+                    matrix[10][x] = 1
+                }
+
+                // خط عمودی
+                for (y in 10..40) {
+                    matrix[y][10] = 1
+                }
+
+                // چند پیکسل
+                matrix[20][30] = 1
+                matrix[21][31] = 1
+                matrix[22][32] = 1
+            }
             val navcontroller = rememberNavController()
 
             var message by remember {
@@ -138,13 +189,13 @@ class MainActivity : ComponentActivity() {
                 var selectedItem by remember { mutableIntStateOf(0) }
 
                 val items = listOf(
-                    "Home",
-                    "Settings",
+                    "Led",
+                    "Oled",
                 )
 
                 val icons = listOf(
-                    Icons.Filled.Home,
-                    Icons.Default.Settings,
+                    Icons.Filled.WbIncandescent,
+                    Icons.Default.Monitor,
                 )
 
                 Scaffold(
@@ -337,6 +388,8 @@ class MainActivity : ComponentActivity() {
                         val green = (color.green * 255).toInt()
                         val blue = (color.blue * 255).toInt()
                         val hex = "#%02X%02X%02X".format(red, green, blue)
+                        var text by remember { mutableStateOf("") }
+
                         NavHost(navController = navcontroller, startDestination = "LED") {
                             composable(route = "LED") {
                                 Column(
@@ -596,11 +649,495 @@ class MainActivity : ComponentActivity() {
                             composable(
                                 route = "OLED"
                             ) {
-                                Text("Hello")
+                                Column(
+                                    Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.SpaceAround,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Column {
+                                        Text(
+                                            "OLED Display",
+                                            fontSize = 16.sp,
+                                            color = Color(0xffF5F5FC),
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Spacer(Modifier.height(10.dp))
+                                        Box(
+                                            Modifier
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = Color(0xffFFFFFF).copy(alpha = .12f),
+                                                    shape = RoundedCornerShape(16.dp)
+                                                )
+                                                .background(Color(0xff171B25))
+                                                .padding(20.dp),
+                                            contentAlignment = Alignment.Center
+
+
+                                        ) {
+
+                                            Box(
+                                                Modifier
+                                                    .width((128 * 2.5).dp)
+                                                    .height((64 * 2.5).dp)
+
+                                                    .background(Color.Black)
+
+
+                                            ) {
+                                                PixelDisplay(
+                                                    matrix = matrix,
+                                                    modifier = Modifier
+                                                        .width(320.dp)
+                                                        .height(160.dp),
+                                                    pixelColor = Color(0xFF00FF88),
+                                                    backgroundColor = Color.Black
+                                                )
+
+                                            }
+                                        }
+                                        Spacer(Modifier.height(15.dp))
+                                        Box(
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = Color(0xffFFFFFF).copy(alpha = .12f),
+                                                    shape = RoundedCornerShape(16.dp)
+                                                )
+                                                .background(Color(0xff171B25))
+                                                .padding(20.dp),
+                                            contentAlignment = Alignment.Center
+
+
+                                        ) {
+                                            Column(
+                                                Modifier.fillMaxSize(),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+
+                                                Row(
+                                                    Modifier.fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        "Text editor",
+                                                        fontWeight = FontWeight.Medium,
+                                                        fontSize = 14.sp, color = Color(0xffF5F5FC)
+                                                    )
+                                                    Text(
+                                                        "${text.length} / 20",
+                                                        fontFamily = FontRobotoMono,
+                                                        fontWeight = FontWeight.Normal,
+                                                        fontSize = 10.sp, color = Color(0xff9398AD)
+                                                    )
+                                                }
+
+                                                val textState = rememberTextFieldState()
+
+                                                TextField(
+                                                    state = textState,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(38.dp),
+
+                                                    shape = RoundedCornerShape(10.dp),
+
+                                                    placeholder = {
+                                                        Text(
+                                                            "Enter your message...",
+                                                            color = Color(0xff9398AD),
+                                                            fontSize = 12.sp
+                                                        )
+                                                    },
+
+                                                    textStyle = TextStyle(
+                                                        color = Color.White
+                                                    ),
+
+                                                    contentPadding = PaddingValues(
+                                                        horizontal = 12.dp,
+                                                        vertical = 4.dp
+                                                    ),
+
+                                                    inputTransformation = InputTransformation.maxLength(
+                                                        20
+                                                    ),
+
+                                                    lineLimits = TextFieldLineLimits.SingleLine,
+
+                                                    colors = TextFieldDefaults.colors(
+                                                        unfocusedContainerColor = Color(0xff090B12),
+                                                        focusedContainerColor = Color(0xff090B12),
+                                                        focusedIndicatorColor = Color.Transparent,
+                                                        unfocusedIndicatorColor = Color.Transparent
+                                                    )
+                                                )
+                                                Row(
+                                                    Modifier.fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+
+                                                    val categories = listOf(
+                                                        Icons.AutoMirrored.Filled.FormatAlignLeft,
+                                                        Icons.Filled.FormatAlignCenter,
+                                                        Icons.AutoMirrored.Filled.FormatAlignLeft
+                                                    )
+
+                                                    var selectedCategory by remember {
+                                                        mutableIntStateOf(1)
+                                                    }
+                                                    LazyRow(
+                                                        Modifier
+                                                            .height(35.dp)
+                                                            .clip(shape = RoundedCornerShape(8.dp))
+                                                            .background(color = Color(0xff090B12)),
+
+                                                        ) {
+                                                        itemsIndexed(categories) { index, category ->
+
+                                                            val isSelected =
+                                                                selectedCategory == index
+
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .width(52.dp)
+                                                                    .fillMaxHeight()
+                                                                    .clip(
+                                                                        shape = RoundedCornerShape(
+                                                                            7.dp
+                                                                        )
+                                                                    )
+
+                                                                    .background(
+                                                                        color = if (isSelected) Color(
+                                                                            0xff2A2240
+                                                                        ) else Color(0xff090B12)
+                                                                    )
+
+
+                                                                    .clickable {
+                                                                        selectedCategory = index
+                                                                    },
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+
+                                                                Icon(
+                                                                    imageVector = category,
+                                                                    contentDescription = null,
+                                                                    tint = if (isSelected) Color(
+                                                                        0xffAD82FF
+                                                                    ) else Color(0xff9398AD)
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                    MyDropdown()
+                                                }
+
+                                                Row(
+                                                    Modifier.fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    val fontSizecategories = listOf(
+                                                        "Small", "Medium", "Large"
+                                                    )
+
+                                                    var fontSizeselectedCategory by remember {
+                                                        mutableIntStateOf(1)
+                                                    }
+                                                    Text(
+                                                        "Font size",
+                                                        fontSize = 13.sp,
+                                                        color = Color(0xff9398AD)
+                                                    )
+
+
+                                                    LazyRow(
+                                                        Modifier
+                                                            .height(35.dp)
+                                                            .clip(shape = RoundedCornerShape(8.dp))
+                                                            .background(color = Color(0xff090B12)),
+
+                                                        ) {
+                                                        itemsIndexed(fontSizecategories) { index, category ->
+
+                                                            val isSelected =
+                                                                fontSizeselectedCategory == index
+
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .width(81.7.dp)
+                                                                    .fillMaxHeight()
+                                                                    .clip(
+                                                                        shape = RoundedCornerShape(
+                                                                            7.dp
+                                                                        )
+                                                                    )
+
+                                                                    .background(
+                                                                        color = if (isSelected) Color(
+                                                                            0xff2A2240
+                                                                        ) else Color(0xff090B12)
+                                                                    )
+
+
+                                                                    .clickable {
+                                                                        fontSizeselectedCategory =
+                                                                            index
+                                                                    },
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+
+                                                                Text(
+                                                                    category,
+                                                                    fontWeight = FontWeight.SemiBold,
+                                                                    fontSize = 11.sp,
+                                                                    color = if (isSelected) Color(
+                                                                        0xffAD82FF
+                                                                    ) else Color(0xff9398AD)
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                Button(
+                                                    onClick = {},
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(shape = RoundedCornerShape(32.dp))
+                                                ) {
+                                                    Text(
+                                                        "UPDATE DISPLAY",
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color(0xff090B12),
+                                                        fontSize = 11.sp
+
+                                                    )
+                                                }
+
+                                            }
+                                        }
+                                        Spacer(Modifier.height(15.dp))
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+
+                                            Button(
+                                                onClick = {
+                                                    // Clear action
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(38.dp),
+                                                shape = RoundedCornerShape(11.dp),
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(0xff12151F),
+                                                    contentColor = Color(0xffF5F5FC)
+                                                ),
+                                                border = BorderStroke(
+                                                    1.dp,
+                                                    Color.White.copy(alpha = .07f)
+                                                ),
+                                                contentPadding = PaddingValues(0.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Delete,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(15.dp)
+                                                )
+
+                                                Spacer(modifier = Modifier.width(6.dp))
+
+                                                Text(
+                                                    text = "Clear",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    // Clear action
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(38.dp),
+                                                shape = RoundedCornerShape(11.dp),
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(0xff12151F),
+                                                    contentColor = Color(0xffF5F5FC)
+                                                ),
+                                                border = BorderStroke(
+                                                    1.dp,
+                                                    Color.White.copy(alpha = .07f)
+                                                ),
+                                                contentPadding = PaddingValues(0.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.PowerSettingsNew,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(15.dp),
+                                                    tint = Color(0xffAD82FF)
+                                                )
+
+                                                Spacer(modifier = Modifier.width(6.dp))
+
+                                                Text(
+                                                    text = "OLED Power",
+                                                    fontSize = 10.sp, color = Color(0xffAD82FF),
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
+
+                                        }
+
+                                    }
+                                }
                             }
 
                         }
                     }
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun PixelDisplay(
+        matrix: Array<IntArray>,
+        modifier: Modifier = Modifier,
+        pixelColor: Color = Color.White,
+        backgroundColor: Color = Color.Black
+    ) {
+        Canvas(
+            modifier = modifier
+                .background(backgroundColor)
+        ) {
+
+            val pixelWidth = size.width / 128f
+            val pixelHeight = size.height / 64f
+
+            for (y in 0 until 64) {
+                for (x in 0 until 128) {
+
+                    if (matrix[y][x] == 1) {
+
+                        drawRect(
+                            color = pixelColor,
+                            topLeft = Offset(
+                                x = x * pixelWidth,
+                                y = y * pixelHeight
+                            ),
+                            size = Size(
+                                width = pixelWidth,
+                                height = pixelHeight
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun MyDropdown() {
+
+        val options = listOf("Middle", "top", "bottom")
+
+        var expanded by remember { mutableStateOf(false) }
+        var selectedOption by remember { mutableStateOf(options[0]) }
+
+        ExposedDropdownMenuBox(
+            modifier = Modifier.width(156.dp),
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(35.dp)
+                    .menuAnchor(
+                        ExposedDropdownMenuAnchorType.PrimaryNotEditable
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFF090B12))
+                    .border(
+                        width = 1.dp,
+                        color = Color.White.copy(alpha = 0.09f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 8.dp),
+
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    imageVector = Icons.Filled.VerticalAlignCenter,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = selectedOption,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .rotate(if (expanded) 180f else 0f)
+                )
+
+            }
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = option,
+                                fontSize = 11.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Filled.Monitor,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            selectedOption = option
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
